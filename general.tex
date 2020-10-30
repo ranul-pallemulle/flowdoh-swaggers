@@ -1,0 +1,40 @@
+\section{Writing a Swagger File}
+\subsection{The most minimal Swagger file}
+Listing \ref{code:minimum_swagger} shows all the required fields as defined by the OpenAPI specification. Note that a minimally valid Swagger file according the specification is not a valid Flowdoh Swagger file. Flowdoh requires certain fields that are defined as optional in the OpenAPI specification. For example, Flowdoh requires the \texttt{servers} section to be defined so that the base URL of the API is known.
+\begin{lstlisting}[caption={A minimal OpenAPI 3.0 definition},label={code:minimum_swagger},language=json]
+    {
+        "openapi": "3.0.2",
+        "info": {
+            "title": "A minimal Swagger file",
+            "version": "1.0"
+        },
+        "paths": {
+
+        }
+    }
+\end{lstlisting}
+Note that the \texttt{paths} object is required but may be left empty. According to the specification, this is to allow for access control \cite{empty_paths} - a person may be able to access the Swagger file but not have access to the available paths. Flowdoh requires that Swagger files have a populated \texttt{paths} section and it expects to discover operations within the defined paths.
+\subsection{The \texttt{openapi} section}
+This field defines the version of the OpenAPI specification that the file conforms to. It is only valid in OpenAPI 3.0 files. If the file conforms to the OpenAPI 2.0 specification, it should instead have a \texttt{swagger} section as shown in listing \ref{code:swagger_2.0}.
+\begin{lstlisting}[caption={Alternative to the \texttt{openapi} section in OpenAPI 2.0},label={code:swagger_2.0},language=json]
+    {
+        "swagger": "2.0"
+    }
+\end{lstlisting}
+Flowdoh only checks for the first (major) portion of the version number to identify whether the file should be parsed as OpenAPI 2.0 or 3.0. Therefore, any minor version number for OpenAPI 3.0 is regarded as valid. For example, the version number could be indicated as "3.0.9" even though such a version of the specification does not exist. Flowdoh will parse any OpenAPI 3.0 file as if it were of version 3.0.2 as that is the latest officially supported version in Flowdoh. Given that the OpenAPI 3 specification is backwards compatible, Flowdoh is able to parse OpenAPI 3 documents up to and including version 3.0.2.
+\subsection{The \texttt{info} section}
+This section is used to add some metadata about the API. The \texttt{title} field gives a name to the API or the Swagger file. The \texttt{version} field provides the version number of the API that is described in the file. Other fields such as contact information, terms of service, license information may be optionally provided. The \texttt{info} section is not made use of by Flowdoh but should still be provided for ease of use by a human reader.
+\subsection{The \texttt{servers} section}
+\begin{lstlisting}[caption={A URL defined in the \texttt{servers} section},label={code:servers},language=json]
+    {
+        "servers": [
+            {
+                "url": "https://myapi.com"
+            }
+        ]
+    }
+\end{lstlisting}
+This section defines the base URLs for the API. It is possible to include multiple URLs here. Currently, Flowdoh only uses the first one listed.
+\subsection{The \texttt{paths} section}
+\subsubsection{Operations}
+\subsection{The \texttt{components} section}
