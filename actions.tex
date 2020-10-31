@@ -1,52 +1,31 @@
-\section{Actions}
-\subsection{Basic Definition}
-A Flowdoh Action can be defined as an \texttt{operation} within a given \texttt{path} in the Swagger file. There can be multiple operations defined under the same path; they will correspond to distinct Flowdoh Actions.
-\begin{lstlisting}[language=json]
-{
-    "paths": {
-        "/api/users/{userId}": {
-            "get": {
-                "summary": "Get User", // optional
-                "operationId": "getUser",
-                "description": "Get user details using the user ID", // optional
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "userId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ok", // optional
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstName": {
-                                            "type": "string"
-                                        },
-                                        "lastName": {
-                                            "type": "string"
-                                        },
-                                        "age": {
-                                            "type": "integer",
-                                            "format": "int32"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-\end{lstlisting}
-\subsection{The \texttt{operationId} and \texttt{x-zen-action} Properties}
-The \texttt{operationId} field is used to uniquely identify an operation within the Swagger file. Even though \texttt{operationId} is defined as an optional field in the OpenAPI specification, Flowdoh requires this field to be present (especially in the absence of the \texttt{x-zen-action} property). If the \texttt{x-zen-action} field is not present, the value of the operationId field will be displayed in the Action selection list when inserting a new Action into a workflow. \texttt{operationId} is typically supplied as a name without any spaces - e.g. GetUserById. Therefore, in terms of user experience it may be confusing to see a list such as FIGURE. The name displayed in the Action selection list may be overridden by specifying the \texttt{x-zen-action} property. Note that even if the \texttt{x-zen-action} property is specified, it is recommended that the \texttt{operationId} property is still supplied as it may be used for other purposes such as linked operations (see trigger section).
+\section{Flowdoh Actions}
+\label{sec:actions}
+In this section we will focus on topics that are more geared towards correctly defining Flowdoh Actions and how to use specific properties in the Swagger file to achieve some desired effect.
+\subsection{Defining Actions}
+By default, Flowdoh recognizes an \texttt{operation} within a given \texttt{path} in the Swagger file as an Action. Action parameters and responses are defined in the Swagger file as described in the \hyperref[subsubsec:operations]{Operations} section. In addition, several custom properties, also known as Swagger extensions, can be defined. These are application-specific properties that are not governed by the OpenAPI specification. Flowdoh-specific extensions have names that are prefixed with \texttt{x-zen-} and are summarised in Table \ref{table:extensions}.
+\begin{table}[h!]
+\centering
+    \begin{tabularx}{0.9\textwidth}{ X X }
+        \hline
+        Extension & Summary \\
+        \hline
+        \texttt{x-zen-action} & Alternative to \texttt{operationId} as a name for the action. May contain spaces. \\
+        \hline
+        \texttt{x-zen-trigger} & Similar to \texttt{x-zen-action} but also identifies the operation as a Trigger and not an Action. \\
+        \hline
+        \texttt{x-zen-display-name} & Alternative display name for a parameter or context item. \\
+        \hline
+        \texttt{x-zen-hidden-input} & Prevents a parameter from being displayed to the user in the Action configuration. \\
+        \hline
+        \texttt{x-zen-callback-url} & Identifies the callback URL parameter in the Trigger webhook request. \\
+        \hline
+        \texttt{x-zen-array-index} & Selects a specific index of an array in an Action/Trigger response, rather than using the entire array. \\
+        \hline
+        \texttt{x-zen-hook-renew-period} & Defines a time duration (in minutes) after which a Trigger webhook should be automatically re-established. \\
+        \hline
+    \end{tabularx}
+    \caption{List of Flowdoh Swagger extensions that apply to Actions and/or Triggers}
+    \label{table:extensions}
+\end{table}
+\subsection{The \texttt{x-zen-action} Property}
+The \texttt{operationId} property is used to uniquely identify an operation within the Swagger file. If the \texttt{x-zen-action} property is not present, the value of the \texttt{operationId} field will be displayed in the Action selection list when inserting a new Action into a workflow. \texttt{operationId} is typically supplied as a name without any spaces - e.g. GetUserById. Therefore, in terms of user experience it may be confusing to see a list such as FIGURE. The displayed name may be overridden by specifying the \texttt{x-zen-action} property. Note that even if the \texttt{x-zen-action} property is specified, it is recommended that the \texttt{operationId} property is still supplied as it may be used for other purposes such as linked operations (see trigger section).
