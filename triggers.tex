@@ -1,16 +1,17 @@
 \section{Flowdoh Triggers}
 \label{sec:triggers}
 \subsection{Webhooks}
-Before we can define a Flowdoh Trigger in a Swagger file, we must first understand the concept of a webhook. A webhook is something of a contract between two applications, where one application sends a URL to the other and asks it to send a request with data to that URL when some condition is met. 
+Before we can define a Flowdoh Trigger in a Swagger file, we must first understand the concept of a webhook. A webhook is similar to a contract between two applications, where one application sends a URL to the other and asks it to send a request with data to that URL when some condition is met. 
 
 Flowdoh makes use of webhooks to enable triggers from external applications. Flowdoh creates a URL which, when sent a request with data, triggers a given workflow. This URL is called a callback URL. Flowdoh sends a request containing this URL to the external application, along with some conditions as to when to trigger the workflow. This is called a webhook subscribe request. The external application stores the callback URL and the conditions. Then, at some point in the future when the conditions are met, the external application sends a notification to the callback URL, triggering the workflow. If at any point the workflow must be deactivated, Flowdoh sends the API a request asking it to stop sending notifications. This is called a webhook unsubscribe request, and must contain some information about the initial subscription so that the API can identify it and cancel it.
 
 A trigger can be defined in the Swagger file by describing three parts that make up the webhook; the webhook subscribe request, the notifications, and the webhook unsubscribe request. The following sections illustrate how each part is described. For complete examples of describing triggers, see the Outlook API and the Florix Feedback Swagger files in the Appendices.
 
-If the external API does not support webhooks, an alternative way to define a trigger is to use a Hookless trigger. See the appendix section for more details.
+If the external API does not support webhooks, an alternative way to define a trigger is to use a Hookless trigger.
 
 \subsubsection{The webhook subscribe request}
-Listing \ref{code:webhooksubscribe} shows an example of a webhook subscribe request. The \texttt{requestBody}, \texttt{callbacks}, and \texttt{responses} sections are left empty here - we shall describe them separately.
+Listing \ref{code:webhooksubscribe} shows an example of a webhook subscribe request. The \texttt{requestBody}, \texttt{callbacks}, and \texttt{responses} sections are left empty here - we shall describe them separately.\\
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Webhook subscribe request},label={code:webhooksubscribe},language=json]
 "paths": {
     "/api/webhooks/subscribe": {
@@ -31,7 +32,9 @@ Listing \ref{code:webhooksubscribe} shows an example of a webhook subscribe requ
     }
 }
 \end{lstlisting}
+\end{minipage}
 The \texttt{x-zen-trigger} property identifies the operation being described as a webhook subscribe request. It also has a similar effect to \texttt{x-zen-action} in that it gives the trigger a custom display name.
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Webhook subscribe request - the request body},label={code:webhooksubscriberequestbody},language=json]
 "requestBody": {
     "content": {
@@ -53,8 +56,10 @@ The \texttt{x-zen-trigger} property identifies the operation being described as 
     }
 }
 \end{lstlisting}
+\end{minipage}
 The webhook subscribe request is sent by Flowdoh as soon as a new workflow is saved, or when a stopped workflow is restarted.
-Listing \ref{code:webhooksubscriberequestbody} shows an example request body in a webhook subscribe request. The \texttt{subscriptionUrl} property takes the workflow trigger callback URL as its value. This is indicated to Flowdoh by using \texttt{x-zen-callback-url} property. Flowdoh then generates the callback URL and populates the value of the \texttt{subscriptionUrl} property. Since the value is populated by the system and not the user, the parameter need not be visible in the trigger configuration panel. Hence, the \texttt{x-zen-hidden-input} property is used here to hide it.
+Listing \ref{code:webhooksubscriberequestbody} shows an example request body in a webhook subscribe request. The \texttt{subscriptionUrl} property takes the workflow trigger callback URL as its value. This is indicated to Flowdoh by using \texttt{x-zen-callback-url} property. Flowdoh then generates the callback URL and populates the value of the \texttt{subscriptionUrl} property. Since the value is populated by the system and not the user, the parameter need not be visible in the trigger configuration panel. Hence, the \texttt{x-zen-hidden-input} property is used here to hide it.\\
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Webhook subscribe request - the callbacks section},label={code:webhooksubscribecallbacks},language=json]
 "callbacks": {
     "trigger": {
@@ -90,7 +95,9 @@ Listing \ref{code:webhooksubscriberequestbody} shows an example request body in 
     }
 }
 \end{lstlisting}
-The callbacks section allows us for a asynchronous notifications to be defined in a Swagger file. Listing \ref{code:webhooksubscribecallbacks} shows an example of a notification sent by the external API to Flowdoh to trigger the workflow. This request must be a \texttt{POST} request as Flowdoh only accepts \texttt{POST} requests to callback URLs. The specification allows for multiple callbacks to be defined in the \texttt{callbacks} section. To identify the trigger callback, Flowdoh looks for a callback named \texttt{trigger}. If it does not find one, it uses the first listed callback. The \texttt{requestBody} section of the callback describes the data sent as part of the notification. This data that is available in the workflow context. Flowdoh only accepts \texttt{application/json} or \texttt{multipart/form-data} media types in notifications.
+\end{minipage}
+The callbacks section allows for asynchronous notifications to be defined in a Swagger file. Listing \ref{code:webhooksubscribecallbacks} shows an example of a notification sent by the external API to Flowdoh to trigger the workflow. This request must be a \texttt{POST} request as Flowdoh only accepts \texttt{POST} requests to callback URLs. The specification allows for multiple callbacks to be defined in the \texttt{callbacks} section. To identify the trigger callback, Flowdoh looks for a callback named \texttt{trigger}. If it does not find one, it uses the first listed callback. The \texttt{requestBody} section of the callback describes the data sent as part of the notification. This data that is available in the workflow context. Flowdoh only accepts \texttt{application/json} or \texttt{multipart/form-data} media types in notifications.\\
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Webhook subscribe request - the responses section},label={code:webhooksubscriberesponses},language=json]
 "responses": {
     "201": {
@@ -119,8 +126,11 @@ The callbacks section allows us for a asynchronous notifications to be defined i
     }
 }
 \end{lstlisting}
-The \texttt{responses} section describes the external API's immediate response to a webhook subscribe request. The response typically contains some data, such as an ID, that can be used to identify the subscription so that it may be cancelled or modified later. In the example response in listing \ref{code:webhooksubscriberesponses} we see that some JSON data with a property \texttt{subscriptionId} is returned. The \texttt{responses} object also defines a \texttt{links} section. Response links are an OpenAPI 3.0 feature that indicates to the reader that a given operation, identified by its operationId, can use data from another operation as parameters. Listing \ref{code:webhooksubscriberesponses} shows that the operation \texttt{unsubscribeFromNotifications} uses the \texttt{subscriptionId} returned in the response as its \texttt{id} parameter. The location of the \texttt{subscriptionId} property is described using runtime expression syntax - \texttt{\$response.body\#/subscriptionId}. For more information, see . Flowdoh requires that the link connecting the webhook subscribe request and the webhook unsubscribe request be named \texttt{HookRemove}.
+\end{minipage}
+The \texttt{responses} section describes the external API's immediate response to a webhook subscribe request. The response typically contains some data, such as an ID, that can be used to identify the subscription so that it may be cancelled or modified later. In the example response in listing \ref{code:webhooksubscriberesponses} we see that some JSON data with a property \texttt{subscriptionId} is returned. The \texttt{responses} object also defines a \texttt{links} section. Response links\cite{linkedoperations} are an OpenAPI 3.0 feature that indicates to the reader that a given operation, identified by its operationId, can use data from another operation as parameters. Listing \ref{code:webhooksubscriberesponses} shows that the operation \texttt{unsubscribeFromNotifications} uses the \texttt{subscriptionId} returned in the response as its \texttt{id} parameter. The location of the \texttt{subscriptionId} property is described using runtime expression syntax - \texttt{\$response.body\#/subscriptionId}. For more information on this syntax, see \cite{runtimeexpressions}. Flowdoh requires that the link connecting the webhook subscribe request and the webhook unsubscribe request be named \texttt{HookRemove}.
 \subsubsection{The webhook unsubscribe request}
+\hfill\\
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Webhook unsubscribe request},label={code:webhookunsubscribe},language=json]
 "paths": {
     "/api/webhooks/{id}": {
@@ -146,9 +156,11 @@ The \texttt{responses} section describes the external API's immediate response t
     }
 }
 \end{lstlisting}
+\end{minipage}
 The webhook unsubscribe request cancels the subscription identified by the \texttt{id} parameter. Flowdoh sends this request when a workflow is disabled (stopped) by the user. This parameter is populated by Flowdoh using the response to the webhook subscribe request.
 \subsection{The \texttt{x-zen-hook-renew-period} property}
-Some external services do not allow indefinite subscriptions. That is, they expire after a certain time has elapsed. After webhook expiration, notifications are no longer sent by the API. This means that Flowdoh must periodically re-establish webhooks with such an API. This can be achieved by using the \texttt{x-zen-hook-renew-period} property.
+Some external services do not allow indefinite subscriptions. That is, they expire after a certain time has elapsed. After webhook expiration, notifications are no longer sent by the API. This means that Flowdoh must periodically re-establish webhooks with such an API. This can be achieved by using the \texttt{x-zen-hook-renew-period} property.\\
+\begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={\texttt{x-zen-hook-renew-period} usage},label={code:x-zen-hook-renew-period},language=json]
 "paths": {
     "/api/webhooks/subscribe": {
@@ -161,4 +173,5 @@ Some external services do not allow indefinite subscriptions. That is, they expi
     }
 }
 \end{lstlisting}
+\end{minipage}
 Listing \ref{code:x-zen-hook-renew-period} indicates that a new webhook will be established every 2880 minutes (2 days). Auto-renewal of the webhook will only take place if the workflow is not disabled (stopped).

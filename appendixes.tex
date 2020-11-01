@@ -1,6 +1,1135 @@
-\begin{appendices}
-\section{The Hookless (Dynamic) Trigger}
+\appendix
+\addcontentsline{toc}{section}{Appendices}
+\section*{Appendices}
 \section{Example Swagger Files}
-\subsection{Outlook API v2.0}
+\subsection{Microsoft Outlook API}
+\begin{lstlisting}[language=json,basicstyle=\ttfamily\tiny,numberstyle=\tiny]
+{
+  "openapi": "3.0.2",
+  "info": {
+    "description": "Microsoft Outlook",
+    "version": "2.0",
+    "title": "Outlook API"
+  },
+  "servers": [
+    {
+      "url": "https://outlook.office.com"
+    }
+  ],
+  "paths": {
+    "/api/v2.0/me/subscriptions": {
+      "post": {
+        "tags": ["Webhooks"],
+        "x-zen-trigger": "Mail Received",
+        "x-zen-hook-renew-period": 2880,
+        "summary": "Hook for mail retrieval",
+        "description": "",
+        "operationId": "mailRetrievalHook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookResponse"
+                }
+              }
+            },
+            "links": {
+              "HookRemove": {
+                "description": "Remove webhook",
+                "operationId": "deletePushNotificationHook",
+                "parameters": {
+                  "subscriptionId": "$response.body#/Id"
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "trigger": {
+            "{$request.body#/NotificationURL}": {
+              "post": {
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EmailReceivedPushContent"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Workflow instance created",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "correlationId": {
+                              "type": "string",
+                              "description": "Http request trace identifier"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "all_mail": [
+              "Offline_Access",
+              "https://outlook.office.com/mail.read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v2.0/me/subscriptions('{subscriptionId}')": {
+      "delete": {
+        "tags": ["Webhooks"],
+        "summary": "Delete push notification hook",
+        "description": "",
+        "operationId": "deletePushNotificationHook",
+        "x-zen-action": "Delete Push Notification Webhook",
+        "parameters": [
+          {
+            "name": "subscriptionId",
+            "in": "path",
+            "description": "Subscription ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "all_mail": [
+              "Offline_Access",
+              "https://outlook.office.com/mail.read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v2.0/me/messages/{id}": {
+      "get": {
+        "tags": ["Mails"],
+        "summary": "Get mail",
+        "description": "",
+        "operationId": "getMail",
+        "x-zen-action": "Get Mail Message",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Message ID",
+            "required": true,
+            "schema": {
+              "x-zen-display-name": "Message ID",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Subject": {
+                      "type": "string"
+                    },
+                    "Body": {
+                      "type": "object",
+                      "properties": {
+                        "ContentType": {
+                          "type": "string",
+                          "x-zen-display-name": "Content Type"
+                        },
+                        "Content": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Sender": {
+                      "type": "object",
+                      "properties": {
+                        "EmailAddress": {
+                          "type": "object",
+                          "properties": {
+                            "Name": {
+                              "type": "string",
+                              "x-zen-display-name": "Sender Name"
+                            },
+                            "Address": {
+                              "type": "string",
+                              "x-zen-display-name": "Sender Address"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "From": {
+                      "type": "object",
+                      "properties": {
+                        "EmailAddress": {
+                          "type": "object",
+                          "properties": {
+                            "Name": {
+                              "type": "string",
+                              "x-zen-display-name": "From Name"
+                            },
+                            "Address": {
+                              "type": "string",
+                              "x-zen-display-name": "From Address"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "ToRecipients": {
+                      "type": "array",
+                      "x-zen-display-name": "Recipients",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "EmailAddress": {
+                            "type": "object",
+                            "properties": {
+                              "Name": {
+                                "type": "string",
+                                "x-zen-display-name": "Recipient Name"
+                              },
+                              "Address": {
+                                "type": "string",
+                                "x-zen-display-name": "Recipient Address"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "all_mail": [
+              "Offline_Access",
+              "https://outlook.office.com/mail.read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v2.0/me/messages/{id}/attachments": {
+      "get": {
+        "tags": ["Mails"],
+        "summary": "Get mail attachments",
+        "description": "",
+        "operationId": "getMailAttachments",
+        "x-zen-action": "Get Mail Attachments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Message ID",
+            "required": true,
+            "schema": {
+              "x-zen-display-name": "Message ID",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "array",
+                      "x-zen-display-name": "Attachments",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "Name": {
+                            "type": "string",
+                            "x-zen-display-name": "File Name"
+                          },
+                          "ContentType": {
+                            "type": "string",
+                            "x-zen-display-name": "File Content Type"
+                          },
+                          "ContentBytes": {
+                            "type": "string",
+                            "x-zen-display-name": "File"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "all_mail": [
+              "Offline_Access",
+              "https://outlook.office.com/mail.read"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/v2.0/me/sendmail": {
+      "post": {
+        "tags": ["Mails"],
+        "summary": "Send a mail",
+        "description": "",
+        "operationId": "sendMail",
+        "x-zen-action": "Send Mail",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailMessage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          },
+          "405": {
+            "description": "Invalid input"
+          }
+        },
+        "security": [
+          {
+            "all_mail": [
+              "Offline_Access",
+              "https://outlook.office.com/mail.send"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MailMessage": {
+        "type": "object",
+        "required": ["Message"],
+        "properties": {
+          "Message": {
+            "type": "object",
+            "title": "The Message Schema",
+            "required": ["Subject", "Body", "ToRecipients"],
+            "properties": {
+              "Subject": {
+                "type": "string",
+                "title": "The Subject Schema",
+                "default": "",
+                "pattern": "^(.*)$"
+              },
+              "Body": {
+                "type": "object",
+                "title": "The Body Schema",
+                "required": ["ContentType", "Content"],
+                "properties": {
+                  "ContentType": {
+                    "type": "string",
+                    "x-zen-display-name": "Content Type",
+                    "title": "The Contenttype Schema",
+                    "default": "html",
+                    "pattern": "^(.*)$"
+                  },
+                  "Content": {
+                    "type": "string",
+                    "format": "html",
+                    "title": "The Content Schema",
+                    "default": "",
+                    "pattern": "^(.*)$"
+                  }
+                }
+              },
+              "ToRecipients": {
+                "type": "array",
+                "x-zen-display-name": "Recipients",
+                "title": "The Torecipients Schema",
+                "items": {
+                  "type": "object",
+                  "title": "The Items Schema",
+                  "required": ["EmailAddress"],
+                  "properties": {
+                    "EmailAddress": {
+                      "type": "object",
+                      "title": "The Emailaddress Schema",
+                      "required": ["Address"],
+                      "properties": {
+                        "Address": {
+                          "type": "string",
+                          "title": "The Address Schema",
+                          "default": "",
+                          "pattern": "^(.*)$"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "Attachments": {
+                "type": "array",
+                "title": "Attachments",
+                "items": {
+                  "type": "object",
+                  "title": "The Items Schema",
+                  "properties": {
+                    "Name": {
+                      "type": "string",
+                      "title": "Attachment Name"
+                    },
+                    "@odata.type": {
+                      "type": "string",
+                      "x-zen-display-name": "OData Type",
+                      "title": "Type",
+                      "default": "#Microsoft.OutlookServices.FileAttachment"
+                    },
+                    "ContentBytes": {
+                      "type": "string",
+                      "x-zen-display-name": "Content Bytes",
+                      "title": "Attachment Content Base64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "HookRequest": {
+        "type": "object",
+        "required": [
+          "@odata.type",
+          "Resource",
+          "NotificationURL",
+          "ChangeType",
+          "ClientState"
+        ],
+        "properties": {
+          "@odata.type": {
+            "type": "string",
+            "x-zen-display-name": "OData Type",
+            "default": "#Microsoft.OutlookServices.PushSubscription"
+          },
+          "Resource": {
+            "type": "string",
+            "default": "https://outlook.office.com/api/v2.0/me/mailfolders('inbox')/messages"
+          },
+          "NotificationURL": {
+            "type": "string",
+            "x-zen-callback-url": "NotificationURL",
+            "x-zen-hidden-input": true
+          },
+          "ChangeType": {
+            "type": "string",
+            "x-zen-display-name": "Change Type",
+            "default": "Created"
+          },
+          "ClientState": {
+            "type": "string",
+            "x-zen-display-name": "Client State",
+            "default": "Flowdoh"
+          }
+        }
+      },
+      "HookResponse": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string"
+          },
+          "SubscriptionExpirationDateTime": {
+            "type": "string"
+          }
+        }
+      },
+      "EmailReceivedPushContent": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "array",
+            "x-zen-array-index": 0,
+            "items": {
+              "type": "object",
+              "properties": {
+                "SubscriptionId": {
+                  "type": "string",
+                  "x-zen-display-name": "Subscription ID"
+                },
+                "SubscriptionExpirationDateTime": {
+                  "type": "string",
+                  "x-zen-display-name": "Subscription Expiration Date/Time"
+                },
+                "SequenceNumber": {
+                  "type": "integer",
+                  "format": "int32",
+                  "x-zen-display-name": "Sequence Number"
+                },
+                "ChangeType": {
+                  "type": "string",
+                  "x-zen-display-name": "Change Type"
+                },
+                "Resource": {
+                  "type": "string"
+                },
+                "ResourceData": {
+                  "type": "object",
+                  "properties": {
+                    "Id": {
+                      "x-zen-display-name": "Message ID",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "all_mail": {
+        "type": "oauth2",
+        "description": "API OAuth2 Security",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+            "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            "refreshUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            "scopes": {
+              "Offline_Access": "Allows application to access refresh access token on behalf of user",
+              "https://outlook.office.com/mail.read": "Read access to user emails",
+              "https://outlook.office.com/mail.send": "Write access to user emails"
+            }
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  }
+}
+\end{lstlisting}
 \subsection{Florix Feedback}
-\end{appendices}
+\begin{lstlisting}[language=json,basicstyle=\ttfamily\tiny,numberstyle=\tiny]
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Florix Feedback",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://florixfeedback.azurewebsites.net"
+    }
+  ],
+  "paths": {
+    "/api/v1/Webhooks": {
+      "post": {
+        "x-zen-trigger": "Feedback Submitted",
+        "operationId": "feedbackSubmittedHook",
+        "summary": "Webhook creation",
+        "tags": [
+          "Webhooks"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            },
+            "links": {
+              "HookRemove": {
+                "operationId": "deleteWebhook",
+                "parameters": {
+                  "subscriptionId": "$response.body#/subscriptionId"
+                }
+              }
+            }
+          }
+        },
+        "callbacks": {
+          "trigger": {
+            "{$request.body#/callbackUrl}": {
+              "post": {
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Notification"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "201": {
+                    "description": "Workflow instance created",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "correlationId": {
+                              "type": "string",
+                              "description": "Http request trace identifier"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWebhook",
+        "summary": "delete webhook",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "subscriptionId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WebhookCreationDto": {
+        "type": "object",
+        "properties": {
+          "callbackUrl": {
+            "type": "string",
+            "x-zen-callback-url": "callbackUrl",
+            "x-zen-hidden-input": true 
+          },
+          "feedbackType": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WebhookResponse": {
+        "type": "object",
+        "properties": {
+          "subscriptionId": {
+            "type": "string"
+          }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Email": {
+            "type": "string",
+            "nullable": true
+          },
+          "Comments": {
+            "type": "string"
+          },
+          "Anonymous": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}
+\end{lstlisting}
+\subsection{Google Cloud Translations API}
+\begin{lstlisting}[language=json,basicstyle=\ttfamily\tiny,numberstyle=\tiny]
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Google Cloud Translations",
+    "version": "v3"
+  },
+  "servers": [
+    {
+      "url": "https://translation.googleapis.com/v3"
+    }
+  ],
+  "paths": {
+    "/projects/{project}:translateText": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Translations"
+        ],
+        "x-zen-action": "Translate Text",
+        "operationId": "translateText",
+        "summary": "Translate text",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project}:detectLanguage": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "project",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Translations"
+        ],
+        "x-zen-action": "Detect Language",
+        "operationId": "detectLanguage",
+        "summary": "Detect Language in input",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LangDetectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LangDetectResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "speech_api": [
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/cloud-translation"
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "TranslateRequest": {
+        "type": "object",
+        "properties": {
+          "contents": {
+            "x-zen-display-name": "Text to translate",
+            "type": "array",
+            "items": {
+              "x-zen-display-name": "Text",
+              "type": "string"
+            }
+          },
+          "targetLanguageCode": {
+            "x-zen-display-name": "Target language code (BCP-47)",
+            "type": "string"
+          }
+        }
+      },
+      "TranslateResponse": {
+        "type": "object",
+        "properties": {
+          "translations": {
+            "type": "array",
+            "x-zen-array-index": 0,
+            "items": {
+              "type": "object",
+              "properties": {
+                "translatedText": {
+                  "x-zen-display-name": "Translated Text",
+                  "type": "string"
+                },
+                "detectedLanguageCode": {
+                  "x-zen-display-name": "Detected Language Code",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "LangDetectRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "x-zen-display-name": "Text",
+            "type": "string"
+          }
+        }
+      },
+      "LangDetectResponse": {
+        "type": "object",
+        "properties": {
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "languageCode": {
+                  "x-zen-display-name": "Detected Language Code",
+                  "type": "string"
+                },
+                "confidence": {
+                  "x-zen-display-name": "Confidence",
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "speech_api": {
+        "type": "oauth2",
+        "description": "Speech to Text OAuth2 security",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+            "tokenUrl": "https://oauth2.googleapis.com/token",
+            "refreshUrl": "https://oauth2.googleapis.com/token",
+            "scopes": {
+              "https://www.googleapis.com/auth/cloud-platform": "Access cloud platform",
+              "https://www.googleapis.com/auth/cloud-translation": "Access cloud translation"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+\end{lstlisting}
+\subsection{Google Cloud Speech-to-Text API}
+\begin{lstlisting}[language=json,basicstyle=\ttfamily\tiny,numberstyle=\tiny]
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Google Speech to Text",
+    "version": "v1p1beta1"
+  },
+  "servers": [
+    {
+      "url": "https://speech.googleapis.com/v1p1beta1"
+    }
+  ],
+  "paths": {
+    "/speech:recognize": {
+      "post": {
+        "tags": [
+          "Transcriptions"
+        ],
+        "summary": "Transcribe speech to text",
+        "x-zen-action": "Speech To Text",
+        "operationId": "speechToText",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "$ref": "#/components/schemas/RecognitionConfig"
+                  },
+                  "audio": {
+                    "$ref": "#/components/schemas/RecognitionAudio"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "x-zen-array-index": 0,
+                      "items": {
+                        "$ref": "#/components/schemas/SpeechRecognitionResult"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "speech_api": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "RecognitionConfig": {
+        "type": "object",
+        "required": [
+          "languageCode"
+        ],
+        "properties": {
+          "encoding": {
+            "type": "string",
+            "x-zen-display-name": "Encoding",
+            "description": "Encoding of audio data sent in all RecognitionAudio messages. This field is optional for FLAC and WAV audio files and required for all other audio formats.",
+            "enum": [
+              "ENCODING_UNSPECIFIED", 
+              "LINEAR16", 
+              "FLAC", 
+              "MULAW",
+              "AMR",
+              "AMR_WB",
+              "OGG_OPUS",
+              "SPEEX_WITH_HEADER_BYTE",
+              "MP3"
+            ]
+          },
+          "sampleRateHertz": {
+            "type": "integer",
+            "x-zen-display-name": "Sample Rate (Hertz)",
+            "description": "Sample rate in Hertz of the audio data sent in all RecognitionAudio messages. Valid values are: 8000-48000. 16000 is optimal. For best results, set the sampling rate of the audio source to 16000 Hz."
+          },
+          "audioChannelCount": {
+            "type": "integer",
+            "x-zen-display-name": "Audio Channel Count",
+            "description": "The number of channels in the input audio data. ONLY set this for MULTI-CHANNEL recognition. Valid values for LINEAR16 and FLAC are 1-8. Valid values for OGG_OPUS are '1'-'254'. Valid value for MULAW, AMR, AMR_WB and SPEEX_WITH_HEADER_BYTE is only 1. If 0 or omitted, defaults to one channel (mono)."
+          },
+          "enableSeparateRecognitionPerChannel": {
+            "type": "boolean",
+            "x-zen-display-name": "Enable Separate Recognition Per Channel",
+            "description": "This needs to be set to true explicitly and audioChannelCount > 1 to get each channel recognized separately."
+          },
+          "languageCode": {
+            "type": "string",
+            "x-zen-display-name": "BCP-47 Language Code",
+            "description": "Required. The language of the supplied audio as a BCP-47 language tag."
+          },
+          "alternativeLanguageCodes": {
+            "type": "array",
+            "x-zen-display-name": "Alternative Language Codes",
+            "description": "A list of up to 3 additional BCP-47 language codes, listing possible alternative languages of the supplied audio.",
+            "items": {
+              "type": "string",
+              "x-zen-display-name": "BCP-47 Language Code"
+            }
+          },
+          "maxAlternatives": {
+            "type": "integer",
+            "x-zen-display-name": "Max Alternatives",
+            "description": "Maximum number of recognition hypotheses to be returned."
+          },
+          "profanityFilter": {
+            "type": "boolean",
+            "x-zen-display-name": "Profanity Filter",
+            "description": "If set to true, the server will attempt to filter out profanities, replacing all but the initial character in each filtered word with asterisks, e.g. 'f***'."
+          }
+        }
+      },
+      "RecognitionAudio": {
+        "type": "object",
+        "description": "Contains audio data in the encoding specified in the RecognitionConfig. Either content or uri must be supplied. Supplying both or neither returns google.rpc.Code.INVALID_ARGUMENT",
+        "properties": {
+          "content": {
+            "type": "string",
+            "x-zen-display-name": "Audio File",
+            "description": "The audio data bytes encoded as specified in RecognitionConfig. Note: as with all bytes fields, proto buffers use a pure binary representation, whereas JSON representations use base64."
+          },
+          "uri": {
+            "type": "string",
+            "x-zen-display-name": "Google Cloud Storage URI",
+            "description": "URI that points to a file that contains audio data bytes as specified in RecognitionConfig. The file must not be compressed (for example, gzip). Currently, only Google Cloud Storage URIs are supported, which must be specified in the following format: gs://bucketName/object_name"
+          }
+        }
+      },
+      "SpeechRecognitionResult": {
+        "type": "object",
+        "properties": {
+          "alternatives": {
+            "type": "array",
+            "x-zen-array-index": 0,
+            "items": {
+              "type": "object",
+              "properties": {
+                "transcript": {
+                  "x-zen-display-name": "Transcript",
+                  "type": "string"
+                },
+                "confidence": {
+                  "x-zen-display-name": "Confidence",
+                  "type": "number"
+                },
+                "words": {
+                  "x-zen-display-name": "Words",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "startTime": {
+                        "type": "string"
+                      },
+                      "endTime": {
+                        "type": "string"
+                      },
+                      "word": {
+                        "type": "string"
+                      },
+                      "speakerTag": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "channelTag": {
+            "x-zen-display-name": "Channel Tag",
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "speech_api": {
+        "type": "oauth2",
+        "description": "Speech to Text OAuth2 security",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+            "tokenUrl": "https://oauth2.googleapis.com/token",
+            "refreshUrl": "https://oauth2.googleapis.com/token",
+            "scopes": {
+              "https://www.googleapis.com/auth/cloud-platform": "Access cloud platform"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+\end{lstlisting}
