@@ -2,7 +2,11 @@
 \label{sec:actions}
 In this section we will focus on topics that are more geared towards correctly defining Flowdoh Actions and how to use specific properties in the Swagger file to achieve some desired effect.
 \subsection{Defining Actions}
-By default, Flowdoh recognizes an \texttt{operation} within a given \texttt{path} in the Swagger file as an Action. Action parameters and responses are defined in the Swagger file as described in the \hyperref[subsubsec:operations]{Operations} section. In addition, several custom properties, also known as Swagger extensions, can be defined. These are application-specific properties that are not governed by the OpenAPI specification. Flowdoh-specific extensions have names that are prefixed with \texttt{x-zen-} and are summarised in Table \ref{table:extensions}.
+By default, Flowdoh recognizes an \texttt{operation} within a given \texttt{path} in the Swagger file as an Action. While the OpenAPI specification allows for a large number of media types to be specified for operation parameters and responses, Flowdoh currently only supports the media types \texttt{application/json}, \texttt{application/octet-stream}, \texttt{application/x-www-form-urlencoded} and \texttt{multipart/form-data} for use with Actions and Triggers. 
+
+Action parameters and responses are defined in the Swagger file as described in the \hyperref[subsubsec:operations]{Operations} section of this document. Parameters for which values aren't provided by the user will not be sent as part of the operation if they aren't required parameters and no default value is defined in the Swagger file. If they are required parameters, a suitable empty value will be sent. For example, if the parameter type is \texttt{string} the value \texttt{""} will be sent.
+
+In addition, several custom properties, also known as Swagger extensions, can be defined. Extensions are application-specific properties that are not governed by the OpenAPI specification. Flowdoh-specific extensions have names that are prefixed with \texttt{x-zen-} and are summarised in Table \ref{table:extensions}.
 \begin{table}[h!]
 \centering
     \begin{tabularx}{0.9\textwidth}{ X X }
@@ -27,5 +31,143 @@ By default, Flowdoh recognizes an \texttt{operation} within a given \texttt{path
     \caption{List of Flowdoh Swagger extensions that apply to Actions and/or Triggers}
     \label{table:extensions}
 \end{table}
-\subsection{The \texttt{x-zen-action} Property}
-The \texttt{operationId} property is used to uniquely identify an operation within the Swagger file. If the \texttt{x-zen-action} property is not present, the value of the \texttt{operationId} field will be displayed in the Action selection list when inserting a new Action into a workflow. \texttt{operationId} is typically supplied as a name without any spaces - e.g. GetUserById. Therefore, in terms of user experience it may be confusing to see a list such as FIGURE. The displayed name may be overridden by specifying the \texttt{x-zen-action} property. Note that even if the \texttt{x-zen-action} property is specified, it is recommended that the \texttt{operationId} property is still supplied as it may be used for other purposes such as linked operations (see trigger section).
+\subsection{The \texttt{x-zen-action} property}
+The \texttt{operationId} property is used to uniquely identify an operation within the Swagger file. If the \texttt{x-zen-action} property is not present, the value of the \texttt{operationId} field will be displayed in the Action selection list when inserting a new Action into a workflow. \texttt{operationId} is typically supplied as a name without spaces - e.g. \texttt{GetUserById}. Therefore, it may be detrimental to the user experience to see a list such as FIGURE. The displayed name may be overridden by specifying the \texttt{x-zen-action} property. Note that even if the \texttt{x-zen-action} property is specified, it is recommended that the \texttt{operationId} property is still supplied as it may be used for other purposes such as linking operations together.
+\begin{lstlisting}[caption={\texttt{x-zen-action} usage},label={code:x-zen-action},language=json]
+{
+    "paths": {
+        "/api/v5/users": {
+            "get": {
+                "summary": "Get list of users",
+                "operationId": "getListOfUsers",
+                "x-zen-action": "Get List of Users"
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{The \texttt{x-zen-display-name} property}
+Similar to the \texttt{x-zen-action} property, this property provides an alternative display name to a field defined inside a \texttt{schema} property. It is applicable to parameters as well as responses. For parameters, the custom values are displayed in the Action configuration panel. For responses, the custom values are displayed in the context selection panel.
+\begin{lstlisting}[caption={\texttt{x-zen-display-name} usage},label={code:x-zen-display-name},language=json]
+"requestBody": {
+    "content": {
+        "application/json": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "x-zen-display-name": "First Name"
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "x-zen-display-name": "Last Name"
+                    },
+                    "age": {
+                        "type": "integer",
+                        "x-zen-display-name": "Age"
+                    },
+                    "address": {
+                        "type": "object",
+                        "properties": {
+                            "city": {
+                                "type": "string",
+                                "x-zen-display-name": "City of Residence"
+                            },
+                            "country": {
+                                "type": "string",
+                                "x-zen-display-name": "Country of Residence"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+\subsection{The \texttt{x-zen-hidden-input} property}
+This property is used to hide a parameter in the Action configuration panel. This may be useful when the value for the parameter is always given a default value and need not be known to the user. 
+\subsection{The \texttt{x-zen-array-index} property}
+Some actions (and triggers) return data that contain JSON arrays. In Flowdoh, data inside arrays can only be accessed in the workflow context by using a loop which will do some processing for each element of the array. In some cases it may be known that only a single element of the array is useful to the workflow. This property may then be used to extract the data out of the array so that it can be used in the workflow context without the use of loops.
+\begin{lstlisting}[caption={\texttt{x-zen-array-index} usage},label={code:x-zen-array-index},language=json]
+"responses": {
+    "200": {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "value": {
+                            "type": "array",
+                            "x-zen-array-index": 0,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "messageId": {
+                                        "type": "string"
+                                    },
+                                    "messageContent": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+In listing \ref{code:x-zen-array-index}, if the \texttt{x-zen-array-index} property were not specified, the \texttt{value} property must be mapped to a loop start node before the properties \texttt{messageId} and \texttt{messageContent} are available as context data (and even then they will only be available inside the loop). The inclusion of \texttt{x-zen-array-index} indicates to Flowdoh that only the first item of the array (index 0) should be used and not the entire array. This allows \texttt{messageId} and \texttt{messageContent} to be available in the context just like any other context item.
+\subsection{Binary data}
+A user can use Actions to send binary data such as documents and images to external APIs. Binary data can also be received from an external API as part of the action response or trigger. This can be achieved by using the media types \texttt{application/json} or \texttt{multipart/form-data} in the \texttt{requestBody} or \texttt{responses} section of an operation. If \texttt{application/json} is used, the file will be sent as a base64-encoded string. If \texttt{multipart/form-data} is used, the file will be sent as raw binary data. To identify an item as binary content within the Swagger file, it must be given the type \texttt{string}. If the media type is \texttt{application/json}, the item must be given the format \texttt{byte}. If the media type is \texttt{multipart/form-data}, the item must be given the format \texttt{binary}.
+\begin{lstlisting}[caption={Defining files in JSON data},label={code:binaryinjson},language=json]
+"requestBody": {
+    "content": {
+        "application/json": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "fullName": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "resume": { // binary data
+                        "type": "string",
+                        "format": "byte"
+                    }
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+\begin{lstlisting}[caption={Defining files in a form post},label={code:binaryinmultipart},language=json]
+"requestBody": {
+    "content": {
+        "multipart/form-data": {
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "fullName": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "resume": { // binary data
+                        "type": "string",
+                        "format": "binary"
+                    }
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}

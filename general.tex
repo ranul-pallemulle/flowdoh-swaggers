@@ -1,6 +1,6 @@
 \section{Writing a Swagger File}
 \subsection{A minimal Swagger file}
-Listing \ref{code:minimum_swagger} shows all the required fields as defined by the OpenAPI specification. Note that a minimally valid Swagger file according the specification is not a valid Flowdoh Swagger file. There are certain fields that, despite being defined as optional in the OpenAPI specification, are required by Flowdoh to be present in the Swagger file. For example, Flowdoh requires the \texttt{servers} section to be defined so that the base URL of the API is known.
+Listing \ref{code:minimum_swagger} shows all the required fields as defined by the OpenAPI specification. Note that a minimally valid Swagger file according the specification is not a valid Flowdoh Swagger file. There are certain fields in the Swagger file that, despite being defined as optional in the OpenAPI specification, are required by Flowdoh to be present. For example, Flowdoh requires the \texttt{servers} section to be defined so that the base URL of the API is known.
 \begin{lstlisting}[caption={A minimal OpenAPI 3.0 definition},label={code:minimum_swagger},language=json]
 {
     "openapi": "3.0.2",
@@ -54,7 +54,7 @@ This section is used to add some metadata about the API. The \texttt{title} fiel
     ]
 }
 \end{lstlisting}
-This section defines the base URLs for the API. It is possible to include multiple URLs here. Currently, Flowdoh only uses the first one listed. The OpenAPI specification allows for the use of \texttt{server variables} which can be used for substituting values in the url. This feature is not currently supported in Flowdoh. The specification also allows a server url to be a relative path which would indicate that the URL is relative to the URL of the location of the Swagger file itself. This too is not supported by Flowdoh - it is expected that the server URL is an absolute URL.
+This section defines the base URLs for the API. It is possible to include multiple URLs here. Currently, Flowdoh only uses the first one listed. The OpenAPI specification allows for the use of \texttt{server variables} which can be used for substituting values in the url. This feature is not currently supported in Flowdoh. The specification also allows a server url to be a relative path which would indicate that the URL is relative to the location of the Swagger file itself. This too is not supported by Flowdoh - it is expected that the server URL is an absolute URL.
 \subsection{The \texttt{paths} section}
 This is the section within which all operations that can be called against the API are defined. Each \texttt{path} in this section can be appended to the host URL to produce a URL that corresponds to the resource being described.
 \begin{lstlisting}[caption={The \texttt{paths} object},label={code:paths},language=json]
@@ -81,7 +81,7 @@ This is the section within which all operations that can be called against the A
     }
 }
 \end{lstlisting}
-Listing \ref{code:paths} shows the \texttt{paths} object populated with a single \texttt{path item} corresponding to the server path "/api/v5/users". If the \texttt{servers} section of the Swagger file were to contain a URL such as in listing \ref{code:servers}, it could be deduced that the absolute URL for this path is "https://myapi.com/api/v5/users". That is, the path is always appended to the server URL to obtain the absolute URL to the resource. There can be many paths defined in the \texttt{paths} section. For example, there may be a different path with the relative URL "/api/v5/users/me" with a similar \texttt{get} operation defined within it which may be used for getting details of the currently authenticated user.
+Listing \ref{code:paths} shows the \texttt{paths} object populated with a single \texttt{path item} corresponding to the server path \texttt{/api/v5/users}. If the \texttt{servers} section of the Swagger file were to contain a URL such as in listing \ref{code:servers}, it could be deduced that the absolute URL for this path is \texttt{https://myapi.com/api/v5/users}. That is, the path is always appended to the server URL to obtain the absolute URL to the resource. There can be many paths defined in the \texttt{paths} section. For example, there may be a different path with the relative URL \texttt{/api/v5/users/me} with a similar \texttt{get} operation defined within it which may be used for getting details of the currently authenticated user.
 \subsubsection{Operations}
 \label{subsubsec:operations}
 Just as there can be many paths defined within the \texttt{paths} section, there can be many operations defined within a single path item. Operations correspond to the HTTP methods \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE}, \texttt{PATCH}, \texttt{HEAD}, \texttt{OPTIONS} and \texttt{TRACE}. The combination of a path and method correspond to a single operation that can be carried out against the API. Flowdoh currently supports the HTTP methods \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE} and \texttt{PATCH}.
@@ -192,7 +192,7 @@ This section contains reusable objects that can be referenced from other parts o
 The components section is only necessary if other sections have references to it. The \texttt{UsersList} and \texttt{User} schemas could alternatively have been defined in-line, in which case the \texttt{components} section could be omitted, provided there are no other references to it. The \texttt{components} section can contain other types of reusable objects as well such as \texttt{parameters} and \texttt{responses}.
 
 \subsection{Security}
-The OpenAPI specification allows for the available authentication methods to be defined in the Swagger file. It also allows the application of these methods to all operations, or specific operations only. Flowdoh currently does not use any authentication information defined in the Swagger file. Instead, the user must manually input all authentication details during app registration. Further, Flowdoh applies the same authentication method and access level to all available operations in the Swagger file.
+The OpenAPI specification allows for the available authentication methods to be defined in the Swagger file. It also allows the application of these methods to all operations, or specific operations only. Flowdoh currently does not use any authentication information defined in the Swagger file. Instead, the user must manually input all authentication details during app registration. Furthermore, Flowdoh applies the same authentication method and access level requirements to all available operations in the Swagger file.
 
 \begin{lstlisting}[caption={OAuth2 authorization code flow defined in the Swagger file},label={code:security},language=json]
 {
