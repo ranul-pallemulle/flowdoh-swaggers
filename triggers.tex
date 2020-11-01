@@ -159,7 +159,7 @@ The \texttt{responses} section describes the external API's immediate response t
 \end{minipage}
 The webhook unsubscribe request cancels the subscription identified by the \texttt{id} parameter. Flowdoh sends this request when a workflow is disabled (stopped) by the user. This parameter is populated by Flowdoh using the response to the webhook subscribe request.
 \subsection{The \texttt{x-zen-hook-renew-period} property}
-Some external services do not allow indefinite subscriptions. That is, they expire after a certain time has elapsed. After webhook expiration, notifications are no longer sent by the API. This means that Flowdoh must periodically re-establish webhooks with such an API. This can be achieved by using the \texttt{x-zen-hook-renew-period} property.\\
+Some external services do not allow indefinite subscriptions. That is, the webhook expires after a certain time has elapsed. After webhook expiration, notifications are no longer sent by the API. This means that Flowdoh must periodically re-establish webhooks with such an API. This can be achieved by using the \texttt{x-zen-hook-renew-period} property.\\
 \begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={\texttt{x-zen-hook-renew-period} usage},label={code:x-zen-hook-renew-period},language=json]
 "paths": {

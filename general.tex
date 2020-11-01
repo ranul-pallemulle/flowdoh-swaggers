@@ -25,7 +25,7 @@ This field defines the version of the OpenAPI specification that the file confor
 }
 \end{lstlisting}
 \end{minipage}
-Flowdoh only checks for the first (major) portion of the version number to identify whether the file should be parsed as OpenAPI 2.0 or 3.0. Therefore, any minor version number for OpenAPI 3.0 is regarded as valid. For example, the version number could be indicated as "3.0.9" even though such a version of the specification does not exist. Flowdoh will parse any OpenAPI 3.0 file as if it were of version 3.0.2 as that is the latest officially supported version in Flowdoh. Given that the OpenAPI 3 specification is designed to be backwards compatible, Flowdoh is able to parse all versions of OpenAPI 3.0 documents, but will ignore any features that are added in versions 3.0.3 and later.
+Flowdoh only checks for the first (major) portion of the version number to identify whether the file should be parsed as OpenAPI 2.0 or 3.0. Therefore, any minor or patch version number for OpenAPI 3.0 is regarded as valid. For example, the version number could be indicated as "3.0.9" even though such a version of the specification does not exist. Flowdoh will parse any OpenAPI 3.0 file as if it were of version 3.0.2 as that is the latest officially supported version in Flowdoh. Given that the OpenAPI 3 specification is designed to be backwards compatible, Flowdoh is able to parse all versions of OpenAPI 3.0 documents, but will ignore any features that are added in versions 3.0.3 and later.
 \subsection{The \texttt{info} section}
 \hfill\\
 \begin{minipage}{\textwidth}
@@ -49,7 +49,7 @@ Flowdoh only checks for the first (major) portion of the version number to ident
 }
 \end{lstlisting}
 \end{minipage}
-This section is used to add some metadata about the API. The \texttt{title} field gives a name to the API. The \texttt{version} field provides the version number of the API that is being described. Other information such as contact details for support, terms of service and license details may optionally be provided. Flowdoh looks for the \texttt{title} and \texttt{version} fields in this section, but only for the purposes of saving the app. No actual functionality in Flowdoh makes use of the \texttt{info} section. Nevertheless, it should still be included in any Swagger file given it is a required field and provides some benefit to the human reader in identifying which API the file describes.
+This section is used to add some metadata about the API. The \texttt{title} field gives a name to the API. The \texttt{version} field provides the version number of the API that is being described. Other information such as contact details for support, terms of service and license details may optionally be provided. Flowdoh looks for the \texttt{title} and \texttt{version} fields in this section, but only for the purposes of saving the app. No actual functionality in Flowdoh makes use of the \texttt{info} section. Nevertheless, it should still be included in any Swagger file given it is a required field and provides some benefit to the human reader in characterizing the API the file describes.
 \subsection{The \texttt{servers} section}
 \hfill\\
 \begin{minipage}{\textwidth}
@@ -97,7 +97,7 @@ Listing \ref{code:paths} shows the \texttt{paths} object populated with a single
 \label{subsubsec:operations}
 Just as there can be many paths defined within the \texttt{paths} section, there can be many operations defined within a single path. Operations correspond to the HTTP methods \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE}, \texttt{PATCH}, \texttt{HEAD}, \texttt{OPTIONS} and \texttt{TRACE}. The combination of a path and method correspond to a single operation that can be carried out against the API. Flowdoh currently supports the HTTP methods \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{DELETE} and \texttt{PATCH}.
 
-An operation may require some parameters to be provided before it can be invoked. In a HTTP request, parameters may be provided as part of the URL, in the request body, in cookies, and in the request headers. URL parameters may be in the form of path (route) parameters or query parameters. The OpenAPI specification allows for such parameters to be defined as part of an operation.
+An operation may require some parameters to be provided before it can be invoked. In a HTTP request, parameters may be provided as part of the URL, in the request body, in cookies, and in the request headers. URL parameters may be in the form of path parameters or query parameters. The OpenAPI specification allows for such parameters to be defined as part of an operation.
 \begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={A \texttt{POST} request with parameters},label={code:operationwithparams},language=json]
 {
@@ -147,7 +147,7 @@ An operation may require some parameters to be provided before it can be invoked
 }
 \end{lstlisting}
 \end{minipage}
-Listing \ref{code:operationwithparams} shows an operation that takes path, query, and body parameters. The path URL makes use of path templating in order to define path parameters. When the operation is invoked, \texttt{\{organizationId\}} is replaced using the value provided by the user, and a query string is appended to the URL using the value provided for the \texttt{sendEmail} parameter. Refer to the \hyperref[sec:actions]{Actions section} of this document to see how Flowdoh provides the ability for users to input values for parameters.
+Listing \ref{code:operationwithparams} shows an operation that takes path, query, and body parameters. The path URL makes use of path templating in order to define path parameters. When the operation is invoked, \texttt{\{organizationId\}} is replaced using the value provided by the user, and a query string is appended to the URL using the value provided for the \texttt{sendEmail} parameter.
 
 Parameters may also be provided at the path level rather than the operation level. These parameters then apply to all operations defined within the path.
 
@@ -157,7 +157,7 @@ The OpenAPI specification allows for URL, cookie, and header parameters to conta
 
 Flowdoh is able to handle JSON arrays in the response or request body as long as they are defined as the JSON root, or are defined within a JSON object. Flowdoh is currently unable to handle a situation where an array is defined within another array.
 
-Flowdoh also allows aggregate schemas to be defined using the \texttt{allOf}, \texttt{anyOf}, and \texttt{oneOf} keywords. The keyword \texttt{not} is not currently supported.
+Flowdoh also allows aggregate schemas to be defined using the \texttt{allOf}, \texttt{anyOf}, and \texttt{oneOf} keywords\cite{aggregateschemas}. The keyword \texttt{not} is not currently supported.
 
 \subsection{The \texttt{components} section}
 This section contains reusable objects that can be referenced from other parts of the Swagger file by using the \texttt{\$ref} keyword. For example, listing \ref{code:components} shows the \texttt{UsersList} and \texttt{User} schemas referenced by the operations in listings \ref{code:operationwithparams} and \ref{code:paths}. Items inside the components section can also reference other items in the components section.\\
@@ -203,7 +203,7 @@ This section contains reusable objects that can be referenced from other parts o
 }
 \end{lstlisting}
 \end{minipage}
-The components section is only necessary if other sections have references to it. The \texttt{UsersList} and \texttt{User} schemas could alternatively have been defined in-line, in which case the \texttt{components} section could be omitted, provided there are no other references to it. The \texttt{components} section can contain other types of reusable objects as well such as \texttt{parameters} and \texttt{responses}.
+The components section is only necessary if other sections have references to it. The \texttt{UsersList} and \texttt{User} schemas could alternatively have been defined in-line, in which case the \texttt{components} section could be omitted, provided there are no other references to it. The \texttt{components} section can contain other types of reusable objects as well such as \texttt{parameters} and \texttt{responses}\cite{components}.
 
 \subsection{Security}
 The OpenAPI specification allows for the available authentication methods to be defined in the Swagger file. It also allows the application of these methods to all operations, or specific operations only. Flowdoh currently does not use any authentication information defined in the Swagger file. Instead, the user must manually input all authentication details during app registration. Furthermore, Flowdoh applies the same authentication method and access level requirements to all available operations in the Swagger file.\\
