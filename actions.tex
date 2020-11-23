@@ -2,7 +2,7 @@
 \label{sec:actions}
 In this section we will focus on topics that are more geared towards correctly defining Flowdoh Actions and how to use specific properties in the Swagger file to achieve some desired effect.
 \subsection{Defining Actions}
-By default, Flowdoh recognizes an \texttt{operation} within a given \texttt{path} in the Swagger file as an Action. While the OpenAPI specification allows for a large number of media types\cite{mediatypes} to be specified for operation parameters and responses, Flowdoh currently only supports the media types \texttt{application/json}, \texttt{application/octet-stream}, \texttt{application/x-www-form-urlencoded} and \texttt{multipart/form-data} for use with Actions and Triggers. 
+By default, Flowdoh recognizes an \texttt{operation} within a given \texttt{path} in the Swagger file as an Action. While the OpenAPI specification allows for a large number of media types\cite{mediatypes} to be specified for operation parameters and responses, Flowdoh currently only supports the media types \texttt{application/json}, \texttt{application/octet-stream}, \texttt{application/x-www-form-urlencoded} and \texttt{multipart/form-data} for use with Actions and Triggers. Actions also support common binary media types in responses (see section on Binary data for more details).
 
 Action parameters and responses are defined in the Swagger file as described in the \hyperref[subsubsec:operations]{Operations} section of this document. Parameters for which values aren't provided by the user will not be sent as part of the operation if they aren't required parameters and no default value is defined in the Swagger file. If they are required parameters, a suitable empty value will be sent. For example, if the parameter type is \texttt{string} the value \texttt{""} will be sent.
 
@@ -120,7 +120,7 @@ Some actions (and triggers) return data that contain JSON arrays. In Flowdoh, da
 \end{minipage}
 In listing \ref{code:x-zen-array-index}, if the \texttt{x-zen-array-index} property were not specified, the \texttt{value} property must be mapped to a loop start node before the properties \texttt{messageId} and \texttt{messageContent} are available as context data (and even then they will only be available inside the loop). The inclusion of \texttt{x-zen-array-index} indicates to Flowdoh that only the first item of the array (index 0) should be used and not the entire array. This allows \texttt{messageId} and \texttt{messageContent} to be available in the context just like any other context item.
 \subsection{Binary data}
-A user can use Actions to send binary data such as documents and images to external APIs. Binary data can also be received from an external API as part of the action response or trigger. This can be achieved by using the media types \texttt{application/json} or \texttt{multipart/form-data} in the \texttt{requestBody} or \texttt{responses} section of an operation. If \texttt{application/json} is used, the file will be sent as a base64-encoded string. If \texttt{multipart/form-data} is used, the file will be sent as raw binary data. To identify an item as binary content within the Swagger file, it must be given the type \texttt{string}. If the media type is \texttt{application/json}, the item must be given the format \texttt{byte}. If the media type is \texttt{multipart/form-data}, the item must be given the format \texttt{binary}.\\
+A user can use Actions to send binary data such as documents and images to external APIs. Binary data can also be received from an external API as part of the action response or trigger. This can be achieved by using the media types \texttt{application/json} or \texttt{multipart/form-data} in the \texttt{requestBody} or \texttt{responses} section of an operation. In the case of actions that return plain binary data, media types such as \texttt{image/jpeg}, \texttt{image/png}, or \texttt{application/pdf} can be used. If the action may return various file types, the generic media type \texttt{application/octet-stream} may be used. To identify plain binary data in the workflow context, use the \texttt{x-zen-display-name} property (see listing \ref{code:binaryinresponse}). In the \texttt{requestBody}, if \texttt{application/json} is used, the file will be sent as a base64-encoded string. Else, if \texttt{multipart/form-data} is used, the file will be sent as raw binary data. To identify an item as binary content within the Swagger file, it must be given the type \texttt{string}. If the media type is \texttt{application/json}, the item must be given the format \texttt{byte}. If the media type is \texttt{multipart/form-data}, or is a different file media type such as \texttt{application/pdf}, the item must be given the format \texttt{binary}.\\
 \begin{minipage}{\textwidth}
 \begin{lstlisting}[caption={Defining files in JSON data},label={code:binaryinjson},language=json]
 "requestBody": {
@@ -164,6 +164,24 @@ A user can use Actions to send binary data such as documents and images to exter
                         "type": "string",
                         "format": "binary"
                     }
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{\textwidth}
+\begin{lstlisting}[caption={Response returning a file},label={code:binaryinresponse},language=json]
+"responses": {
+    "200": {
+        "description": "A pdf or image file",
+        "content": {
+            "application/octet-stream": {
+                "schema": {
+                    "type": "string",
+                    "format": "binary",
+                    "x-zen-display-name": "File Content"
                 }
             }
         }
